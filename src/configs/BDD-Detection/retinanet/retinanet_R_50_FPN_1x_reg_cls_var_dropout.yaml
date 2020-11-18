@@ -1,0 +1,15 @@
+_BASE_: "Base-BDD-RetinaNet.yaml"
+
+MODEL:
+    PROBABILISTIC_MODELING:
+        DROPOUT_RATE: 0.2 # 0.0 for no dropout
+
+        # One of the following Loss types: loss_attenuation'.
+        CLS_VAR_LOSS:
+            NAME: 'loss_attenuation'
+            NUM_SAMPLES: 10
+
+        # One of the following Loss types: 'none' or 'negative_log_likelihood', 'second_moment_matching', 'energy_loss'.
+        BBOX_COV_LOSS:
+            NAME: 'negative_log_likelihood'
+            COVARIANCE_TYPE: 'diagonal' # One of the following: 'full', 'diagonal' # Settings for dropout

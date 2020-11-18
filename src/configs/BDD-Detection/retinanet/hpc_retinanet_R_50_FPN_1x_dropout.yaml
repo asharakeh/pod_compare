@@ -1,0 +1,4 @@
+_BASE_: "retinanet_R_50_FPN_1x_dropout.yaml"
+
+MODEL:
+    WEIGHTS: "/home/harakeha/projects/def-swasland-ab/harakeha/backbone_weights/R-50.pkl"

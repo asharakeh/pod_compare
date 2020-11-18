@@ -1,0 +1,5 @@
+PROBABILISTIC_INFERENCE:
+    # One of the following: 'standard_nms', 'mc_dropout_ensemble',
+    # 'anchor_statistics', 'bayes_od', 'ensemble'
+    INFERENCE_MODE: 'anchor_statistics'
+    AFFINITY_THRESHOLD: 0.9
