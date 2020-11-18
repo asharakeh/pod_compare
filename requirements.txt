@@ -11,7 +11,8 @@ pascal-voc-tools>=0.1.29
 tqdm>=4.42.0
 prettytable>=0.7.2
 ujson>=2.0.3
-sklearn>=0.23.1
+scikit-learn>=0.23.1
+scikit-image>=0.17.2
 uncertainty-calibration>=0.0.7
 
 git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI

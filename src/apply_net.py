@@ -101,7 +101,7 @@ def main(args):
             json.dump(final_output_list, fp, indent=4,
                       separators=(',', ': '))
 
-    compute_average_precision.main(args, cfg)
+    #compute_average_precision.main(args, cfg)
     compute_probabilistic_metrics.main(args, cfg)
     compute_calibration_errors.main(args, cfg)
 

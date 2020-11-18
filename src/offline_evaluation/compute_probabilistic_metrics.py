@@ -164,14 +164,12 @@ def main(
                     # it only affects inter-class variance which we do not
                     # report anyways.
                     average_output_dict[key].update(
-                        {inner_key: np.nanmean(collected_values),
-                         inner_key + '_std': np.nanstd(collected_values, ddof=1)})
+                        {inner_key: np.nanmean(collected_values)})
                     final_accumulated_output_dict[key].update(
                         {inner_key: collected_values})
                 else:
                     average_output_dict.update(
-                        {key: {inner_key: np.nanmean(collected_values),
-                               inner_key + '_std': np.nanstd(collected_values, ddof=1)}})
+                        {key: {inner_key: np.nanmean(collected_values)}})
                     final_accumulated_output_dict.update(
                         {key: {inner_key: collected_values}})
 
@@ -186,28 +184,22 @@ def main(
             [
                 "True Positives:",
                 num_true_positives,
-                '{:.4f} ± {:.4f}'.format(
-                    final_average_output_dict['true_positives_cls_analysis']['ignorance_score_mean'],
-                    final_average_output_dict['true_positives_cls_analysis']['ignorance_score_mean_std']),
-                '{:.4f} ± {:.4f}'.format(
-                    final_average_output_dict['true_positives_reg_analysis']['ignorance_score_mean'],
-                    final_average_output_dict['true_positives_reg_analysis']['ignorance_score_mean_std'])])
+                '{:.4f}'.format(
+                    final_average_output_dict['true_positives_cls_analysis']['ignorance_score_mean']),
+                '{:.4f}'.format(
+                    final_average_output_dict['true_positives_reg_analysis']['ignorance_score_mean'])])
 
         table.add_row(
             [
                 "False Positives:",
                 num_false_positives,
-                '{:.4f} ± {:.4f}'.format(
-                    final_average_output_dict['false_positives_cls_analysis']['ignorance_score_mean'],
-                    final_average_output_dict['false_positives_cls_analysis']['ignorance_score_mean_std']),
-                '{:.4f} ± {:.4f}'.format(
-                    final_average_output_dict['false_positives_reg_analysis']['total_entropy_mean'],
-                    final_average_output_dict['false_positives_reg_analysis']['total_entropy_mean_std'])])
+                '{:.4f}'.format(
+                    final_average_output_dict['false_positives_cls_analysis']['ignorance_score_mean']),
+                '{:.4f}'.format(
+                    final_average_output_dict['false_positives_reg_analysis']['total_entropy_mean'])])
 
         table.add_row(["False Negatives:",
                        num_false_negatives,
-                       '-',
-                       '-',
                        '-',
                        '-'])
         print(table)

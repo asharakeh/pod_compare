@@ -100,11 +100,11 @@ def main(
                     matched_results_key]['predicted_cls_probs'][:, :-1].max(1)
 
                 matched_results[matched_results_key]['predicted_cat_idxs'] = predicted_cat_idxs
+                matched_results[matched_results_key]['output_logits'] = predicted_class_probs
 
         # Load the different detection partitions
         true_positives = matched_results['true_positives']
         duplicates = matched_results['duplicates']
-        localization_errors = matched_results['localization_errors']
         false_positives = matched_results['false_positives']
 
         # Get the number of elements in each partition
@@ -117,7 +117,6 @@ def main(
         all_predicted_scores = torch.cat(
             (true_positives['predicted_cls_probs'].flatten(),
              duplicates['predicted_cls_probs'].flatten(),
-             localization_errors['predicted_cls_probs'].flatten(),
              false_positives['predicted_cls_probs'].flatten()),
             0)
         all_gt_scores = torch.cat(
@@ -127,9 +126,6 @@ def main(
                 torch.nn.functional.one_hot(
                 duplicates['gt_cat_idxs'],
                 duplicates['predicted_cls_probs'].shape[1]).flatten().to(device),
-                torch.zeros_like(
-                localization_errors['predicted_cls_probs'].type(
-                    torch.LongTensor).flatten()).to(device),
                 torch.zeros_like(
                 false_positives['predicted_cls_probs'].type(
                     torch.LongTensor).flatten()).to(device)),
@@ -142,7 +138,6 @@ def main(
 
         for class_idx in cat_mapping_dict.values():
             true_positives_valid_idxs = true_positives['gt_converted_cat_idxs'] == class_idx
-            localization_errors_valid_idxs = localization_errors['gt_converted_cat_idxs'] == class_idx
             duplicates_valid_idxs = duplicates['gt_converted_cat_idxs'] == class_idx
             false_positives_valid_idxs = false_positives['predicted_cat_idxs'] == class_idx
 
@@ -154,8 +149,6 @@ def main(
                     torch.zeros_like(
                     duplicates['gt_converted_cat_idxs'][duplicates_valid_idxs]).to(device),
                     torch.zeros_like(
-                    localization_errors['gt_converted_cat_idxs'][localization_errors_valid_idxs]).to(device),
-                    torch.zeros_like(
                     false_positives['predicted_cat_idxs'][false_positives_valid_idxs]).to(device)),
                 0).type(
                 torch.DoubleTensor)
@@ -164,7 +157,6 @@ def main(
             distribution_params = torch.cat(
                 (true_positives['output_logits'][true_positives_valid_idxs],
                  duplicates['output_logits'][duplicates_valid_idxs],
-                 localization_errors['output_logits'][localization_errors_valid_idxs],
                  false_positives['output_logits'][false_positives_valid_idxs]),
                 0)
             all_predicted_cat_entropy = -torch.log(distribution_params)
@@ -188,20 +180,17 @@ def main(
             # those do not have ground truth.
             all_predicted_means = torch.cat(
                 (true_positives['predicted_box_means'][true_positives_valid_idxs],
-                 duplicates['predicted_box_means'][duplicates_valid_idxs],
-                 localization_errors['predicted_box_means'][localization_errors_valid_idxs]),
+                 duplicates['predicted_box_means'][duplicates_valid_idxs]),
                 0)
 
             all_predicted_covariances = torch.cat(
                 (true_positives['predicted_box_covariances'][true_positives_valid_idxs],
-                 duplicates['predicted_box_covariances'][duplicates_valid_idxs],
-                 localization_errors['predicted_box_covariances'][localization_errors_valid_idxs]),
+                 duplicates['predicted_box_covariances'][duplicates_valid_idxs]),
                 0)
 
             all_predicted_gt = torch.cat(
                 (true_positives['gt_box_means'][true_positives_valid_idxs],
-                 duplicates['gt_box_means'][duplicates_valid_idxs],
-                 localization_errors['gt_box_means'][localization_errors_valid_idxs]),
+                 duplicates['gt_box_means'][duplicates_valid_idxs]),
                 0)
 
             all_predicted_covariances = torch.diagonal(
@@ -256,7 +245,6 @@ def main(
             all_predicted_covars = torch.cat(
                 (true_positives['predicted_box_covariances'][true_positives_valid_idxs],
                  duplicates['predicted_box_covariances'][duplicates_valid_idxs],
-                 localization_errors['predicted_box_covariances'][localization_errors_valid_idxs],
                  false_positives['predicted_box_covariances'][false_positives_valid_idxs]),
                 0)
 
@@ -306,11 +294,11 @@ def main(
         reg_min_u_error = reg_min_u_error[
             ~torch.isnan(reg_min_u_error)].mean()
 
-        table.add_row([cls_marginal_calibration_error,
-                       reg_expected_calibration_error.cpu().numpy().tolist(),
-                       reg_maximum_calibration_error.cpu().numpy().tolist(),
-                       cls_min_u_error.cpu().numpy().tolist(),
-                       reg_min_u_error.cpu().numpy().tolist()])
+        table.add_row(['{:.4f}'.format(cls_marginal_calibration_error),
+                       '{:.4f}'.format(reg_expected_calibration_error.cpu().numpy().tolist()),
+                       '{:.4f}'.format(reg_maximum_calibration_error.cpu().numpy().tolist()),
+                       '{:.4f}'.format(cls_min_u_error.cpu().numpy().tolist()),
+                       '{:.4f}'.format(reg_min_u_error.cpu().numpy().tolist())])
         print(table)
 
 

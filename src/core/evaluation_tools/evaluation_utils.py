@@ -205,15 +205,6 @@ def match_predictions_to_groundtruth(predicted_box_means,
             'gt_cat_idxs': torch.Tensor().to(device),
             'iou_with_ground_truth': torch.Tensor().to(device)})
 
-    localization_errors = dict(
-        {
-            'predicted_box_means': torch.Tensor().to(device),
-            'predicted_box_covariances': torch.Tensor().to(device),
-            'predicted_cls_probs': torch.Tensor().to(device),
-            'gt_box_means': torch.Tensor().to(device),
-            'gt_cat_idxs': torch.Tensor().to(device),
-            'iou_with_ground_truth': torch.Tensor().to(device)})
-
     duplicates = dict({'predicted_box_means': torch.Tensor().to(device),
                        'predicted_box_covariances': torch.Tensor().to(device),
                        'predicted_cls_probs': torch.Tensor().to(device),
@@ -368,66 +359,8 @@ def match_predictions_to_groundtruth(predicted_box_means,
                             (duplicates['iou_with_ground_truth'],
                              match_iou[i, gt_idxs][duplicate_idxs:duplicate_idxs + 1]))
 
-            # Process localization errors
-            # Mask out processed true positives/duplicates so they are not
-            # re-associated with another gt
-            match_iou[:, true_positive_idxs[:, 1]] *= 0.0
-
-            localization_errors_idxs = torch.nonzero(
-                (match_iou > iou_min) & (match_iou < iou_correct))
-
-            # Setup tensors to allow assignment of detections only once.
-            localization_ious_with_gt = match_iou[localization_errors_idxs[:,
-                                                                           0], localization_errors_idxs[:, 1]]
-
-            processed_localization_errors = torch.tensor(
-                []).type(torch.LongTensor).to(device)
-            processed_gt_loc_errors = torch.tensor(
-                []).type(torch.LongTensor).to(device)
-
-            for localization_error_idx in localization_errors_idxs[:, 1]:
-                # If localization error has been processed, skip iteration.
-                if (processed_localization_errors ==
-                        localization_error_idx).any():
-                    continue
-
-                # For every localization error, assign the ground truth with
-                # highest IOU.
-                gt_loc_error_idxs = localization_errors_idxs[localization_errors_idxs[:, 1]
-                                                             == localization_error_idx][:, 0]
-                processed_gt_loc_errors = torch.cat((processed_gt_loc_errors,
-                                                     gt_loc_error_idxs))
-                if gt_loc_error_idxs.shape[0] > 1:
-                    ious_with_gts = localization_ious_with_gt[gt_loc_error_idxs]
-                    sorted_idxs = ious_with_gts.sort(
-                        descending=True)[1]
-                    gt_loc_error_idxs = gt_loc_error_idxs[sorted_idxs[0]:sorted_idxs[0] + 1]
-
-                localization_errors['predicted_box_means'] = torch.cat(
-                    (localization_errors['predicted_box_means'],
-                     predicted_box_means[key][localization_error_idx:localization_error_idx + 1, :]))
-                localization_errors['predicted_cls_probs'] = torch.cat(
-                    (localization_errors['predicted_cls_probs'],
-                     predicted_cls_probs[key][localization_error_idx:localization_error_idx + 1, :]))
-                localization_errors['predicted_box_covariances'] = torch.cat(
-                    (localization_errors['predicted_box_covariances'],
-                     predicted_box_covariances[key][localization_error_idx:localization_error_idx + 1, :]))
-
-                localization_errors['gt_box_means'] = torch.cat(
-                    (localization_errors['gt_box_means'], gt_box_means[key][gt_loc_error_idxs:gt_loc_error_idxs + 1, :]))
-                localization_errors['gt_cat_idxs'] = torch.cat(
-                    (localization_errors['gt_cat_idxs'], gt_cat_idxs[key][gt_loc_error_idxs:gt_loc_error_idxs + 1]))
-                localization_errors['iou_with_ground_truth'] = torch.cat(
-                    (localization_errors['iou_with_ground_truth'],
-                     match_iou[gt_loc_error_idxs, localization_error_idx:localization_error_idx + 1]))
-
-                # Append processed localization errors
-                processed_localization_errors = torch.cat(
-                    (processed_localization_errors, localization_error_idx.unsqueeze(0)))
-
     matched_results = dict()
     matched_results.update({"true_positives": true_positives,
-                            "localization_errors": localization_errors,
                             "duplicates": duplicates,
                             "false_positives": false_positives,
                             "false_negatives": false_negatives})

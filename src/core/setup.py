@@ -17,7 +17,6 @@ import core
 
 from core.datasets.setup_datasets import setup_all_datasets
 from probabilistic_modeling.probabilistic_retinanet import ProbabilisticRetinaNet
-from probabilistic_modeling.probabilistic_generalized_rcnn import ProbabilisticGeneralizedRCNN, DropoutFastRCNNConvFCHead, ProbabilisticROIHeads
 
 
 def setup_arg_parser():

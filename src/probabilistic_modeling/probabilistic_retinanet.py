@@ -54,7 +54,7 @@ class ProbabilisticRetinaNet(RetinaNet):
 
         # Define custom probabilistic head
         backbone_shape = self.backbone.output_shape()
-        feature_shapes = [backbone_shape[f] for f in self.in_features]
+        feature_shapes = [backbone_shape[f] for f in self.head_in_features]
         self.head = ProbabilisticRetinaNetHead(
             cfg,
             self.use_dropout,
@@ -100,7 +100,7 @@ class ProbabilisticRetinaNet(RetinaNet):
 
         # Extract features and generate anchors
         features = self.backbone(images.tensor)
-        features = [features[f] for f in self.in_features]
+        features = [features[f] for f in self.head_in_features]
         anchors = self.anchor_generator(features)
 
         # MC_Dropout inference forward

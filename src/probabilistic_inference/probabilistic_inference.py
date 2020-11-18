@@ -28,8 +28,6 @@ def build_predictor(cfg):
     """
     if cfg.MODEL.META_ARCHITECTURE == 'ProbabilisticRetinaNet':
         return RetinaNetProbabilisticPredictor(cfg)
-    elif cfg.MODEL.META_ARCHITECTURE == 'ProbabilisticGeneralizedRCNN':
-        return GeneralizedRcnnProbabilisticPredictor(cfg)
     else:
         raise ValueError(
             'Invalid meta-architecture {}.'.format(cfg.MODEL.META_ARCHITECTURE))
@@ -299,11 +297,11 @@ class RetinaNetProbabilisticPredictor(ProbabilisticPredictor):
                 box_cls = box_cls.sigmoid_()
 
             # Keep top k top scoring indices only.
-            num_topk = min(self.model.topk_candidates, box_delta.size(0))
+            num_topk = min(self.model.test_topk_candidates, box_delta.size(0))
             predicted_prob, classes_idxs = torch.max(box_cls, 1)
             predicted_prob, topk_idxs = predicted_prob.topk(num_topk)
             # filter out the proposals with low confidence score
-            keep_idxs = predicted_prob > self.model.score_threshold
+            keep_idxs = predicted_prob > self.model.test_score_thresh
             predicted_prob = predicted_prob[keep_idxs]
             topk_idxs = topk_idxs[keep_idxs]
             anchor_idxs = topk_idxs
@@ -406,7 +404,7 @@ class RetinaNetProbabilisticPredictor(ProbabilisticPredictor):
         outputs = self.retinanet_probabilistic_inference(input_im)
 
         return inference_utils.general_standard_nms_postprocessing(
-            input_im, outputs, self.model.nms_threshold, self.model.max_detections_per_image)
+            input_im, outputs, self.model.test_nms_thresh, self.model.max_detections_per_image)
 
     def post_processing_anchor_statistics(self, input_im):
         """
@@ -425,7 +423,7 @@ class RetinaNetProbabilisticPredictor(ProbabilisticPredictor):
         return inference_utils.general_anchor_statistics_postprocessing(
             input_im,
             outputs,
-            self.model.nms_threshold,
+            self.model.test_nms_thresh,
             self.model.max_detections_per_image,
             self.cfg.PROBABILISTIC_INFERENCE.AFFINITY_THRESHOLD)
 
@@ -459,7 +457,7 @@ class RetinaNetProbabilisticPredictor(ProbabilisticPredictor):
                     self.retinanet_probabilistic_inference(
                         input_im,
                         outputs=outputs),
-                    self.model.nms_threshold,
+                    self.model.test_nms_thresh,
                     self.model.max_detections_per_image) for outputs in outputs_list]
 
             # Append per-ensemble outputs after NMS has been performed.
@@ -478,7 +476,7 @@ class RetinaNetProbabilisticPredictor(ProbabilisticPredictor):
                 ensembles_class_idxs_list,
                 ensemble_pred_prob_vectors_list,
                 ensembles_pred_box_covariance_list,
-                self.model.nms_threshold,
+                self.model.test_nms_thresh,
                 self.model.max_detections_per_image,
                 self.cfg.PROBABILISTIC_INFERENCE.AFFINITY_THRESHOLD)
 
@@ -504,7 +502,7 @@ class RetinaNetProbabilisticPredictor(ProbabilisticPredictor):
             outputs = self.retinanet_probabilistic_inference(
                 input_im, ensemble_inference=True, outputs_list=outputs_list)
             return inference_utils.general_standard_nms_postprocessing(
-                input_im, outputs, self.model.nms_threshold, self.model.max_detections_per_image)
+                input_im, outputs, self.model.test_nms_thresh, self.model.max_detections_per_image)
         else:
             outputs_list = []
             for model in model_dict:
@@ -531,7 +529,7 @@ class RetinaNetProbabilisticPredictor(ProbabilisticPredictor):
                 ensembles_class_idxs_list,
                 ensemble_pred_prob_vectors_list,
                 ensembles_pred_box_covariance_list,
-                self.model.nms_threshold,
+                self.model.test_nms_thresh,
                 self.model.max_detections_per_image,
                 self.cfg.PROBABILISTIC_INFERENCE.AFFINITY_THRESHOLD)
 
@@ -557,7 +555,7 @@ class RetinaNetProbabilisticPredictor(ProbabilisticPredictor):
             predicted_boxes,
             predicted_prob,
             classes_idxs,
-            self.model.nms_threshold)
+            self.model.test_nms_thresh)
 
         keep = keep[: self.model.max_detections_per_image]
 

@@ -102,8 +102,7 @@ def compute_reg_scores_fn(false_negatives, valid_idxs):
 
     # If no valid idxs, do not perform computation
     if predicted_box_means.shape[0] == 0:
-        output_dict.update({'total_entropy_mean': None,
-                            'fp_energy_score_mean': None})
+        output_dict.update({'total_entropy_mean': None})
         return output_dict
 
     total_entropy = predicted_multivariate_normal_dists.entropy()
