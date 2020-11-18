@@ -301,138 +301,13 @@ class ProbabilisticRetinaNet(RetinaNet):
                     loss_box_reg = 0.5 * torch.exp(-pred_bbox_cov) * smooth_l1_loss(
                         pred_anchor_deltas,
                         gt_anchors_deltas,
-                        beta=self.smooth_l1_loss_beta)
+                        beta=self.smooth_l1_beta)
 
                     loss_covariance_regularize = 0.5 * pred_bbox_cov
                     loss_box_reg += loss_covariance_regularize
 
                     loss_box_reg = torch.sum(
                         loss_box_reg) / max(1, self.loss_normalizer)
-                else:
-                    # ToDo: Multivariate NLL currently does not work. Find a
-                    # Fix.
-
-                    # Multivariate extension to negative log likelihood.
-                    pred_bbox_cov = pred_bbox_cov[pos_mask]
-
-                    # This is the cholesky decomposition of the covariance matrix. We reconstruct it from 10 estimated
-                    # parameters as a lower triangular matrix.
-                    diag_vars = torch.sqrt(torch.exp(torch.clamp(
-                        pred_bbox_cov[:, 0:4], -7.0, 7.0)))
-                    forecaster_cholesky = torch.diag_embed(diag_vars)
-
-                    tril_indices = torch.tril_indices(row=4, col=4, offset=-1)
-                    forecaster_cholesky[:, tril_indices[0],
-                                        tril_indices[1]] = pred_bbox_cov[:, 4:]
-
-                    inv_forecaster_cholesky = forecaster_cholesky.inverse()
-
-                    pred_anchor_deltas_transformed = torch.matmul(
-                        inv_forecaster_cholesky, pred_anchor_deltas.unsqueeze(2))
-                    gt_anchors_deltas_transformed = torch.matmul(
-                        inv_forecaster_cholesky, gt_anchors_deltas.unsqueeze(2))
-
-                    loss_box_reg = 0.5 * smooth_l1_loss(
-                        pred_anchor_deltas_transformed,
-                        gt_anchors_deltas_transformed,
-                        beta=self.smooth_l1_loss_beta).squeeze(2).sum(1)
-
-                    loss_covariance_regularize = 0.5 * \
-                        torch.logdet(torch.matmul(forecaster_cholesky,
-                                                  forecaster_cholesky.transpose(1, 2)))
-                    loss_box_reg += loss_covariance_regularize
-
-                    loss_box_reg = torch.sum(
-                        loss_box_reg) / max(1, self.loss_normalizer)
-
-            elif self.bbox_cov_loss == 'second_moment_matching':
-                # Compute regression covariance using second moment matching.
-                pred_bbox_cov = pred_bbox_cov[pos_mask]
-                loss_box_reg = smooth_l1_loss(
-                    pred_anchor_deltas,
-                    gt_anchors_deltas,
-                    beta=self.smooth_l1_loss_beta)
-
-                # Compute errors
-                errors = (pred_anchor_deltas - gt_anchors_deltas)
-
-                if self.bbox_cov_type == 'diagonal':
-                    # Compute second moment matching term
-                    second_moment_matching_term = smooth_l1_loss(
-                        torch.exp(pred_bbox_cov), errors ** 2, beta=self.smooth_l1_loss_beta)
-                    loss_box_reg += second_moment_matching_term
-                    loss_box_reg = torch.sum(
-                        loss_box_reg) / max(1, self.loss_normalizer)
-                else:
-                    # Compute second moment matching term
-                    errors = torch.unsqueeze(errors, 2)
-                    gt_error_covar = torch.matmul(
-                        errors, torch.transpose(errors, 2, 1))
-
-                    # This is the cholesky decomposition of the covariance matrix. We reconstruct it from 10 estimated
-                    # parameters as a lower triangular matrix.
-                    diag_vars = torch.sqrt(torch.exp(pred_bbox_cov[:, 0:4]))
-                    forecaster_cholesky = torch.diag_embed(diag_vars)
-
-                    tril_indices = torch.tril_indices(row=4, col=4, offset=-1)
-                    forecaster_cholesky[:, tril_indices[0],
-                                        tril_indices[1]] = pred_bbox_cov[:, 4:]
-
-                    predicted_covar = torch.matmul(
-                        forecaster_cholesky, torch.transpose(
-                            forecaster_cholesky, 2, 1))
-
-                    second_moment_matching_term = smooth_l1_loss(
-                        predicted_covar, gt_error_covar, beta=self.smooth_l1_loss_beta, reduction='sum')
-
-                    loss_box_reg = (torch.sum(
-                        loss_box_reg) + second_moment_matching_term) / max(1, self.loss_normalizer)
-
-            elif self.bbox_cov_loss == 'energy_loss':
-                # Compute regression variance according to energy score loss.
-                forecaster_means = pred_anchor_deltas
-                pred_bbox_cov = pred_bbox_cov[pos_mask]
-
-                # Compute forecaster cholesky. Takes care of diagonal case
-                # automatically.
-                forecaster_cholesky = covariance_output_to_cholesky(
-                    pred_bbox_cov)
-
-                # Define normal distribution samples. To compute energy score,
-                # we need i+1 samples.
-
-                # Define per-anchor Distributions
-                multivariate_normal_dists = distributions.multivariate_normal.MultivariateNormal(
-                    forecaster_means, scale_tril=forecaster_cholesky)
-
-                # Define Monte-Carlo Samples
-                distributions_samples = multivariate_normal_dists.rsample(
-                    (self.bbox_cov_num_samples + 1,))
-
-                distributions_samples_1 = distributions_samples[0:self.bbox_cov_num_samples, :, :]
-                distributions_samples_2 = distributions_samples[1:
-                                                                self.bbox_cov_num_samples + 1, :, :]
-
-                # Compute energy score
-                gt_anchors_deltas_samples = torch.repeat_interleave(
-                    gt_anchors_deltas.unsqueeze(0), self.bbox_cov_num_samples, dim=0)
-
-                energy_score_first_term = smooth_l1_loss(
-                    distributions_samples_1,
-                    gt_anchors_deltas_samples,
-                    beta=self.smooth_l1_loss_beta,
-                    reduction="sum") / self.bbox_cov_num_samples  # First term
-
-                energy_score_second_term = - smooth_l1_loss(
-                    distributions_samples_1,
-                    distributions_samples_2,
-                    beta=self.smooth_l1_loss_beta,
-                    reduction="sum") / (2.0 * self.bbox_cov_num_samples)   # Second term
-
-                # Final Loss
-                loss_box_reg = (
-                    energy_score_first_term + energy_score_second_term) / max(1, self.loss_normalizer)
-
             else:
                 raise ValueError(
                     'Invalid regression loss name {}.'.format(
@@ -442,7 +317,7 @@ class ProbabilisticRetinaNet(RetinaNet):
             standard_regression_loss = smooth_l1_loss(
                 pred_anchor_deltas,
                 gt_anchors_deltas,
-                beta=self.smooth_l1_loss_beta,
+                beta=self.smooth_l1_beta,
                 reduction="sum",
             ) / max(1, self.loss_normalizer)
             probabilistic_loss_weight = min(1.0, self.current_step/self.annealing_step)
@@ -454,7 +329,7 @@ class ProbabilisticRetinaNet(RetinaNet):
             loss_box_reg = smooth_l1_loss(
                 pred_anchor_deltas,
                 gt_anchors_deltas,
-                beta=self.smooth_l1_loss_beta,
+                beta=self.smooth_l1_beta,
                 reduction="sum",
             ) / max(1, self.loss_normalizer)
 
