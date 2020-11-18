@@ -1,0 +1,4 @@
+PROBABILISTIC_INFERENCE:
+    # One of the following: 'standard_nms', 'mc_dropout_ensembles',
+    # 'anchor_statistics', 'bayes_od', 'ensemble'
+    INFERENCE_MODE: 'standard_nms'

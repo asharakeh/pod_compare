@@ -1,0 +1,30 @@
+_BASE_: "../../Base-RetinaNet.yaml"
+
+MODEL:
+    META_ARCHITECTURE: "ProbabilisticRetinaNet"
+
+    WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+
+    RESNETS:
+      DEPTH: 50
+
+    RETINANET:
+        NUM_CLASSES: 7
+
+DATALOADER:
+    NUM_WORKERS: 8  # Depends on the available memory
+
+SOLVER:
+    IMS_PER_BATCH: 4
+    BASE_LR: 0.0025  # Note that RetinaNet uses a different default learning rate
+    STEPS: (60000, 80000)
+    MAX_ITER: 90000
+
+INPUT:
+    MIN_SIZE_TRAIN: ((720,))
+
+DATASETS:
+    TRAIN: ("bdd_train",)
+    TEST: ("bdd_val",)
+
+VERSION: 2
