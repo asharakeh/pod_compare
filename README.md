@@ -1,7 +1,6 @@
 # A Review and Comparative Study on Probabilistic Object Detection in Autonomous Driving
 
-This repository is the official implementation of [A Review and Comparative Study on Probabilistic Object Detection in Autonomous Driving](https://arxiv.org/abs/2030.12345). 
-
+This repository is the official implementation of [A Review and Comparative Study on Probabilistic Object Detection in Autonomous Driving](https://arxiv.org/abs/2030.12345).
 ## Requirements
 
 #### Software Support:
@@ -125,5 +124,8 @@ To do so, run the training code while adding `random-seed xx`. We test with 5 ru
 
 For evaluating with PDQ, please use the official PDQ code for COCO data available [here](https://github.com/david2611/pdq_evaluation).
 
-## License and Citations
-Add arxiv citation
+## Citation
+If you use this code, please cite our paper:
+
+## License
+This code is released under the [Apache 2.0 License](LICENSE.md).

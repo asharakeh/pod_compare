@@ -15,9 +15,6 @@ from detectron2.modeling.meta_arch.retinanet import RetinaNet, RetinaNetHead, pe
 from detectron2.modeling.postprocessing import detector_postprocess
 from detectron2.structures import Boxes
 
-# Project Imports
-from probabilistic_modeling.modeling_utils import covariance_output_to_cholesky
-
 
 @META_ARCH_REGISTRY.register()
 class ProbabilisticRetinaNet(RetinaNet):
