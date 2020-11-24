@@ -127,7 +127,7 @@ For evaluating with PDQ, please use the official PDQ code for COCO data availabl
 ## Citation
 If you use this code, please cite our paper:
 
-```@misc{feng2020review,
+``` @misc{feng2020review,
          title={A Review and Comparative Study on Probabilistic Object Detection in Autonomous Driving}, 
          author={Di Feng and Ali Harakeh and Steven Waslander and Klaus Dietmayer},
          year={2020},
