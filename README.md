@@ -81,7 +81,7 @@ python src/core/datasets convert_kitti_to_coco.py --dataset-dir /path/to/kitti/d
 ```
 python src/core/datasets convert_lyft_to_coco.py --dataset-dir /path/to/lyft/dataset/root
 ```
-                         
+If the script to convert BDD labels to COCO format does not work, please use [these pre-converted labels](https://drive.google.com/file/d/1hOd3zX1Qt0_uV64uJBLidavjbtrv1tXI/view?usp=sharing). 
 ## Training
 To train the model(s) in the paper, run this command:
 
