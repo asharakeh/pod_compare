@@ -210,7 +210,7 @@ def main(
                 all_predicted_covariances_current_dim = all_predicted_covariances[:, box_dim]
                 normal_dists = torch.distributions.Normal(
                     all_predicted_means_current_dim,
-                    scale=all_predicted_covariances_current_dim)
+                    scale=torch.sqrt(all_predicted_covariances_current_dim))
                 all_predicted_scores = normal_dists.cdf(
                     all_predicted_gt_current_dim)
 
