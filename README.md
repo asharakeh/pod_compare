@@ -107,17 +107,17 @@ add `--eval-only` to the above code snippet.
 
 We provide a list of config combinations that generate the architectures used in our paper:
 
-Method Name | Config File | Inference Config File
---- | --- | ---
-Baseline RetinaNet | retinanet_R_50_FPN_1x.yaml| standard_nms.yaml
-Loss Attenuation |retinanet_R_50_FPN_1x_reg_cls_var.yaml| standard_nms.yaml
-Loss Attenuation + Dropout | retinanet_R_50_FPN_1x_reg_cls_var_dropout.yaml | mc_dropout_ensembles_pre_nms.yaml
-BayesOD | retinanet_R_50_FPN_1x_reg_cls_var.yaml | bayes_od.yaml
-BayesOD + Dropout | retinanet_R_50_FPN_1x_reg_cls_var_dropout.yaml | bayes_od_mc_dropout.yaml
-Pre-NMS Ensembles| retinanet_R_50_FPN_1x_reg_cls_var.yaml | ensembles_pre_nms.yaml
-Post-NMS Ensembles| retinanet_R_50_FPN_1x_reg_cls_var.yaml | ensembles_post_nms.yaml
-Black Box| retinanet_R_50_FPN_1x_dropout.yaml | mc_dropout_ensembles_post_nms.yaml
-Output Redundancy| retinanet_R_50_FPN_1x.yaml | anchor_statistics.yaml
+Method Name | Config File | Inference Config File | Pretrained Model
+--- | --- | --- | ---
+Baseline RetinaNet | retinanet_R_50_FPN_1x.yaml| standard_nms.yaml | [retinanet_R_50_FPN_1x.pth](https://drive.google.com/file/d/1kOuXSjRoBLTDXYtCpjzI6Q-TBizFRaw5/view?usp=sharing)
+Loss Attenuation |retinanet_R_50_FPN_1x_reg_cls_var.yaml| standard_nms.yaml | [retinanet_R_50_FPN_1x_reg_cls_var.pth](https://drive.google.com/file/d/1yMspawb66LrZZidCdY3EeQlsF6aYYBrO/view?usp=sharing)
+Loss Attenuation + Dropout | retinanet_R_50_FPN_1x_reg_cls_var_dropout.yaml | mc_dropout_ensembles_pre_nms.yaml | [retinanet_R_50_FPN_1x_reg_cls_var_dropout.pth](https://drive.google.com/file/d/1ALGDsnAVJXK5zgSVbRSziYZlddUqrt2a/view?usp=sharing)
+BayesOD | retinanet_R_50_FPN_1x_reg_cls_var.yaml | bayes_od.yaml | [retinanet_R_50_FPN_1x_reg_cls_var.pth](https://drive.google.com/file/d/1yMspawb66LrZZidCdY3EeQlsF6aYYBrO/view?usp=sharing)
+BayesOD + Dropout | retinanet_R_50_FPN_1x_reg_cls_var_dropout.yaml | bayes_od_mc_dropout.yaml | [retinanet_R_50_FPN_1x_reg_cls_var_dropout.pth](https://drive.google.com/file/d/1ALGDsnAVJXK5zgSVbRSziYZlddUqrt2a/view?usp=sharing)
+Pre-NMS Ensembles| retinanet_R_50_FPN_1x_reg_cls_var.yaml | ensembles_pre_nms.yaml | -
+Post-NMS Ensembles| retinanet_R_50_FPN_1x_reg_cls_var.yaml | ensembles_post_nms.yaml | -
+Black Box| retinanet_R_50_FPN_1x_dropout.yaml | mc_dropout_ensembles_post_nms.yaml | [retinanet_R_50_FPN_1x_dropout.pth](https://drive.google.com/file/d/1ZL0djkgHokfeCnkSy0_jtxOS1T3ROmlL/view?usp=sharing)
+Output Redundancy| retinanet_R_50_FPN_1x.yaml | anchor_statistics.yaml |[retinanet_R_50_FPN_1x.pth](https://drive.google.com/file/d/1kOuXSjRoBLTDXYtCpjzI6Q-TBizFRaw5/view?usp=sharing)
 
 Ensemble methods require multiple independent training runs using different random seeds. 
 To do so, run the training code while adding `random-seed xx`. We test with 5 runs using seed values of 0, 1000, 2000, 3000, and 4000 in our paper.
